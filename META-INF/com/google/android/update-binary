@@ -174,7 +174,7 @@ mount_all() {
 }
 umount_all() {
   local mount;
-  echo "Unmounting..." >&2;
+  echo "卸载中..." >&2;
   (if [ ! -d /postinstall/tmp ]; then
     umount /system;
     umount -l /system;
@@ -271,7 +271,7 @@ debugging() {
     [ -f $path/.ak3-debugging ] && debug=1;
   done;
   if [ "$debug" ]; then
-    ui_print " " "Creating debugging archive in $DIR...";
+    ui_print " " "正在创建调试文件 $DIR...";
     [ -f /tmp/recovery.log ] && log=/tmp/recovery.log;
     tar -czf "$DIR/anykernel3-$(date +%Y-%m-%d_%H%M%S)-debug.tgz" $AKHOME $log;
   fi;
@@ -292,7 +292,7 @@ abort() {
 do_devicecheck() {
   [ "$(file_getprop anykernel.sh do.devicecheck)" == 1 ] || return 1;
   local device devicename match product testname vendordevice vendorproduct;
-  ui_print "Checking device...";
+  ui_print "正在检测设备中...";
   device=$(getprop ro.product.device 2>/dev/null);
   product=$(getprop ro.build.product 2>/dev/null);
   vendordevice=$(getprop ro.product.vendor.device 2>/dev/null);
@@ -307,7 +307,7 @@ do_devicecheck() {
     done;
   done;
   if [ ! "$match" ]; then
-    abort " " "Unsupported device. Aborting...";
+    abort " " "不支持的设备，正在中止...";
   fi;
 }
 int2ver() {
@@ -322,7 +322,7 @@ int2ver() {
 do_versioncheck() {
   [ "$(file_getprop anykernel.sh supported.versions)" ] || return 1;
   local android_ver hi_ver lo_ver parsed_ver supported supported_ver;
-  ui_print "Checking Android version...";
+  ui_print "正在检查安卓版本...";
   supported_ver=$(file_getprop anykernel.sh supported.versions | tr -d '[:space:]');
   android_ver=$(file_getprop /system/build.prop ro.build.version.release);
   parsed_ver=$(int2ver $android_ver);
@@ -343,13 +343,13 @@ do_versioncheck() {
   if [ "$supported" ]; then
     ui_print "$android_ver" " ";
   else
-    abort " " "Unsupported Android version. Aborting...";
+    abort " " "不支持的Android版本，正在中止...";
   fi;
 }
 do_levelcheck() {
   [ "$(file_getprop anykernel.sh supported.patchlevels)" ] || return 1;
   local android_lvl hi_lvl lo_lvl parsed_lvl supported_lvl;
-  ui_print "Checking Android security patch level...";
+  ui_print "检查安卓安全补丁级别...";
   supported_lvl=$(file_getprop anykernel.sh supported.patchlevels | grep -oE '[0-9]{4}-[0-9]{2}|-');
   android_lvl=$(file_getprop /system/build.prop ro.build.version.security_patch);
   parsed_lvl=$(echo $android_lvl | grep -oE '[0-9]{4}-[0-9]{2}');
@@ -366,13 +366,13 @@ do_levelcheck() {
   if echo -e "$hi_lvl\n$lo_lvl\n$parsed_lvl" | sort -g | grep -n "$parsed_lvl" | grep -q '^2:'; then
     ui_print "$android_lvl" " ";
   else
-    abort " " "Unsupported Android security patch level. Aborting...";
+    abort " " "不支持的Android安全补丁级别。正在中止...";
   fi;
 }
 do_vendorlevelcheck() {
   [ "$(file_getprop anykernel.sh supported.vendorpatchlevels)" ] || return 1;
   local vendor_lvl hi_lvl lo_lvl parsed_lvl supported_lvl;
-  ui_print "Checking Vendor security patch level...";
+  ui_print "检查供应商安全补丁级别...";
   supported_lvl=$(file_getprop anykernel.sh supported.vendorpatchlevels | grep -oE '[0-9]{4}-[0-9]{2}|-');
   vendor_lvl=$(file_getprop /vendor/build.prop ro.vendor.build.security_patch);
   parsed_lvl=$(echo $vendor_lvl | grep -oE '[0-9]{4}-[0-9]{2}');
@@ -389,7 +389,7 @@ do_vendorlevelcheck() {
   if echo -e "$hi_lvl\n$lo_lvl\n$parsed_lvl" | sort -g | grep -n "$parsed_lvl" | grep -q '^2:'; then
     ui_print "$vendor_lvl" " ";
   else
-    abort " " "Unsupported Vendor security patch level. Aborting...";
+    abort " " "不支持的供应商安全补丁级别。正在中止...";
   fi;
 }
 dump_moduleinfo() {
@@ -419,11 +419,11 @@ do_modules() {
   local block modcon moddir modtarget module mount slot umask umountksu;
   if [ "$(file_getprop anykernel.sh do.systemless)" == 1 ]; then
     if [ ! -d /data/adb -o ! -d /data/data/android ]; then
-      ui_print " " "Warning: No /data access for kernel helper systemless module!";
+      ui_print " " "警告：内核辅助无系统模块无 /data 访问权限！";
       return 1;
     fi;
     cd $AKHOME/modules;
-    ui_print " " "Creating kernel helper systemless module...";
+    ui_print " " "正在创建内核辅助无系统模块...";
     if [ -d /data/adb/magisk -a -f $AKHOME/magisk_patched ] || [ -d /data/data/me.weishu.kernelsu -a -f $AKHOME/kernelsu_patched ]; then
       umask=$(umask);
       moddir=/data/adb/modules/ak3-helper;
@@ -470,11 +470,11 @@ do_modules() {
       /system/bin/chcon -hR "u:object_r:system_file:s0" $moddir;
       [ "$umountksu" ] && umount /data/adb/modules_update;
     else
-      ui_print "Magisk/KernelSU installation not found. Skipped!";
+      ui_print "Magisk/KernelSU 未找到安装程序。已跳过！";
     fi;
   else
     cd $AKHOME/modules;
-    ui_print " " "Pushing modules...";
+    ui_print " " "驱动模块...";
     if [ -d /dev/block/mapper ]; then
       for block in system vendor product; do
         for slot in "" _a _b; do
@@ -551,7 +551,7 @@ if [ -f version ]; then
   ui_printfile version;
   ui_print " ";
 fi;
-ui_print " " "AnyKernel3 仅供沉默莫尘编译使用" " ";
+ui_print " " "AnyKernel3 仅供沉默莫尘编译使用！" " ";
 grep -oE 'AK_BASE.*' META-INF/com/google/android/updater-script >&2;
 ui_print " ";
 
@@ -562,7 +562,7 @@ do_versioncheck;
 do_levelcheck;
 do_vendorlevelcheck;
 
-ui_print "Installing...";
+ui_print "正在安装中...";
 # hack to maintain support for anykernel.sh files that weren't updated correctly along with the AK core
 CORE=$(grep -oE 'ak.*core.sh' anykernel.sh);
 [ -f tools/$CORE ] || ln -s $AKHOME/tools/ak*-core.sh $AKHOME/tools/$CORE;
@@ -581,6 +581,6 @@ if [ "$(file_getprop anykernel.sh do.cleanup)" == 1 ]; then
   cleanup;
 fi;
 
-ui_print " " "Done!";
+ui_print " " "完成!";
 export PATH="$OLD_PATH";
 unset OLD_PATH OUTFD ZIPFILE;
